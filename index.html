@@ -95,8 +95,7 @@ function st() {
    focus.selectAll("g").remove();
    context.selectAll("g").remove();
    
-   // Set plot type & plot
-   set_type(tp);
+   // Plot
    plot(0);
    brushed();
 }
@@ -156,7 +155,6 @@ add_plot();
 
 function plot(error) {
   // Get plot type the user selected
-  var e = document.getElementById("pltype");
   var tp = e.options[e.selectedIndex].value;
 
   data.forEach(function(d) {
