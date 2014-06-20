@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+svg {
+  font: 10px sans-serif;
+}
+
+.area {
+   fill: none;
+   stroke: steelblue;
+   stroke-width: 2px;
+   clip-path: url(#clip);
+   }
+
+.area2 {
+  fill: steelblue;
+  clip-path: url(#clip);
+   }
+
+.area3 {
+   fill: none;
+   stroke: black;
+   stroke-width: 2px;
+   clip-path: url(#clip);
+   }
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
+</style>
+
+<head>
+<link rel="stylesheet" type="text/css" href="css/jquery.flexbox.css">
+<script src="js/names.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="js/jquery.flexbox.min.js"></script>
+<script src="js/d3.min.js"></script>
+<script src='js/sql.js'></script>
+</head>
+
+<body>
+
+<form onchange="alert(this.value)">
+<!--<div id="fb"></div>-->
+<div id="fb">
+<select id="pltype" name="dropdown">
+<option value="sep">Seperate</option>
+<option value="rat">Ratio</option>
+<option value="diff">Difference</option>
+</select>
+</div>
+</form>
+
+<script>
+// See http://bl.ocks.org/mbostock/3894205 and
+// http://bl.ocks.org/mbostock/1667367
+// Get the light curve file
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'hawc_test_lightcurves_repaired.db', true);
+xhr.responseType = 'arraybuffer';
+
+// Given a database file & name of source, returns MJD, on & off data
+function fetch(name) {
+   // Make sure db is already loaded
+   if (typeof db === 'undefined') {
+      return;
+   }
+
+   var on_tbl = db.exec("SELECT "+ name + " FROM lightcurve_on")[0];
+   var off_tbl = db.exec("SELECT " + name + " FROM lightcurve_off")[0];
+   var mjd_tbl = db.exec("SELECT MJD FROM lightcurve_on")[0];
+
+   // data will contain json points w/ on, off & mjd values
+   data = [];
+   for (var i = 0; i < on_tbl.values.length; i++) {
+      point = {MJD: mjd_tbl.values[i],
+         on: on_tbl.values[i],
+         off: off_tbl.values[i]};
+      data.push(point);
+   }
+   return data;
+}
+
+// When db is loaded, store into a var & plot the crab as default
+xhr.onload = function(e) {
+	// Load database into db
+	var uInt8Array = new Uint8Array(this.response);
+	db = new SQL.Database(uInt8Array);
+
+	// Plot the Crab!
+	var crab = "FGLJ0534_5PP2201_PSRJ0534PP2200";
+   fetch(crab);
+	plot(0);
+};
+
+// Send request for sql file
+xhr.send();
+
+// Set textbox's style & select behavior
+// More info: http://fairwaytech.com/flexbox/
+$('#fb').flexbox(sources, {
+   watermark: 'Enter source name',
+   paging: false,
+   maxVisibleRows: 8,
+   showArrow: false,
+   onSelect: function() {
+      // Clear prev graph
+      focus.selectAll("path").remove();
+      context.selectAll("path").remove();
+      focus.selectAll("g").remove();
+      context.selectAll("g").remove();
+
+      // Get db col name & plot!
+      var name = document.getElementById("fb_hidden").getAttribute("value");
+      plot(0);
+      // Plot in previous context
+      brushed();
+   }
+});
+
+// Set margins
+var margin = {top: 10, right: 10, bottom: 100, left: 40},
+	 margin2 = {top: 430, right: 10, bottom: 20, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom,
+	 height2 = 500 - margin2.top - margin2.bottom;
+
+// Set scales
+var x = d3.scale.linear().range([0, width]),
+	 x2 = d3.scale.linear().range([0, width]),
+	 y = d3.scale.linear().range([height, 0]),
+	 y2 = d3.scale.linear().range([height2, 0]);
+
+// Set axes
+var xAxis = d3.svg.axis().scale(x).orient("bottom"),
+	 xAxis2 = d3.svg.axis().scale(x2).orient("bottom"),
+	 yAxis = d3.svg.axis().scale(y).orient("left");
+
+// Set brush
+var brush = d3.svg.brush()
+	.x(x2)
+	.on("brush", brushed);
+
+// Interpolations for focus & context
+var foc_off = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+	 .y0(height)
+    .y1(function(d) { return y(d.off); });
+
+var foc_on = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+	 .y0(height)
+    .y1(function(d) { return y(d.on); });
+
+var foc_diff = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+    .y0(height)
+    .y1(function(d) { return y(d.on - d.off); });
+
+var foc_rat = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+    .y0(height)
+    .y1(function(d) { 
+       if (d.off == 0)
+         return y(0);
+       return y(d.on / d.off);
+    });
+
+var con_off = d3.svg.area()
+	.interpolate("basis")
+	.x(function(d) { return x2(d.MJD); })
+	.y0(height2)
+	.y1(function(d) { return y2(d.off); });
+
+var con_rat = d3.svg.area()
+   .interpolate("basis")
+   .x(function(d) { return x2(d.MJD); })
+   .y0(height2)
+   .y1(function(d) {
+      if (d.off == 0)
+        return y2(0);
+      return y2(d.on / d.off);
+    });
+
+var con_diff = d3.svg.area()
+   .interpolate("basis")
+   .x(function(d) { return x2(d.MJD); })
+   .y0(height2)
+   .y1(function(d) { return y2(d.on - d.off); });
+
+// Set width & height
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+
+svg.append("defs").append("clipPath")
+	 .attr("id", "clip")
+	 .append("rect")
+	 .attr("width", width)
+	 .attr("height", height);
+
+// Translate focus & context to proper location
+var focus = svg.append("g")
+    .attr("class", "focus")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var context = svg.append("g")
+	 .attr("class", "context")
+	 .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+
+function plot(error) {
+  // Get plot type the user selected
+  var e = document.getElementById("pltype");
+  var tp = e.options[e.selectedIndex].value;
+
+  data.forEach(function(d) {
+    d.MJD = +d.MJD;
+    d.on = +d.on;
+    d.off = +d.off;
+  });
+  
+  x.domain(d3.extent(data, function(d) { return d.MJD; }));
+
+  // Decides which graph to draw depending on selected plot type
+  if (tp == "sep") {
+     // Set x2, y & y2 domain
+     y.domain([0, d3.max(data.map(function(d) { return d3.max([d.off, d.on]); })) ]);
+     x2.domain(x.domain());
+     y2.domain(y.domain());
+     
+     // Append foc_on & foc_off to focus (on & off graphs)
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", foc_off);
+
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area3")
+         .attr("d", foc_on);
+
+     // Append con_off to context (off graph since it's a bit smoother!)
+     context.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", con_off);
+
+  } else if (tp == "rat") {
+     // Set y domain, check for / 0, set x2 & y2 domain
+     y.domain([0, d3.max(data.map(function(d) { 
+          if (d.off == 0)
+            return 0;
+          return d.on / d.off; 
+     })) ]);
+     x2.domain(x.domain());
+     y2.domain(y.domain());
+
+     // Append ratio graph to focus and context
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", foc_rat);
+
+     context.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", con_rat);
+
+  } else if (tp == "diff") {
+     // Set y, y2 & x2 domain
+     y.domain([d3.min(data.map(function(d) { return d.on - d.off; })), 
+               d3.max(data.map(function(d) { return d.on - d.off; }))]);
+     x2.domain(x.domain());
+     y2.domain(y.domain());
+     
+     // Append difference graph to focus & context
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", foc_diff);
+
+     context.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", con_diff);
+  }
+
+
+  focus.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  focus.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+
+  context.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height2 + ")")
+      .call(xAxis2);
+
+  context.append("g")
+      .attr("class", "x brush")
+      .call(brush)
+    .selectAll("rect")
+      .attr("y", -6)
+      .attr("height", height2 + 7);
+};
+
+function brushed() {
+  var e = document.getElementById("pltype");
+  var tp = e.options[e.selectedIndex].value;
+
+  x.domain(brush.empty() ? x2.domain() : brush.extent());
+  
+  // Depending on plot type, redraw graph in focus
+  if (tp == "sep") {
+     focus.select(".area").attr("d", foc_off);
+     focus.select(".area3").attr("d", foc_on);
+  } else if (tp == "rat") {
+     focus.select(".area").attr("d", foc_rat);
+  } else if (tp == "diff") {
+     focus.select(".area").attr("d", foc_diff);
+  }
+
+  focus.select(".x.axis").call(xAxis);
+}  
+  </script>
+</body>
