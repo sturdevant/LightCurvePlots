@@ -114,6 +114,7 @@ $('#fb').flexbox(sources, {
    paging: false,
    maxVisibleRows: 8,
    showArrow: false,
+   width: 250,
    onSelect: function() {
       // Clear prev graph
       focus.selectAll("path").remove();
@@ -123,6 +124,7 @@ $('#fb').flexbox(sources, {
 
       // Get db col name & plot!
       var name = document.getElementById("fb_hidden").getAttribute("value");
+      fetch(name)
       plot(0);
       // Plot in previous context
       brushed();

@@ -5,6 +5,10 @@
 	color:#000; /* must specify along with watermark color */
 	height:16px; /* required for webkit browsers (Safari, Chrome) */
 }
+
+.ffb-input:focus, textarea:focus {
+   outline:none;
+}
 /* Color of watermark, if present */
 .ffb-input.watermark { /* added and removed dynamically */
 	color:#888; /* must specify along with input color */
@@ -37,28 +41,29 @@
 .ffb {
 	position:absolute; /* this guy's parent div is hard-coded to position:relative */
 	overflow:hidden;
-	border-left:1px solid #828790; /* #7B9EBD for Vista */
-	border-right:1px solid #828790;
+	/*border-left:1px solid #828790; /* #7B9EBD for Vista */
+	/*border-right:1px solid #828790;
+	border-bottom:1px solid #828790;*/
 	background-color:#fff; /* Give it a background-color, so it's not transparent */
+   box-shadow: 5px 5px 5px #888888;
+   opacity: 0.90;
 }
 /* Inner div for dropdown */
 .ffb .content {
 	overflow:auto;
 }
 .ffb .content .row {
-	border-bottom:1px solid #828790;
+   border-bottom:none;/* remove borders between each row, looks bad!*/
 	color:#000;
 	height:20px;
 	clear:both;
 }
 .ffb-sel {
-	cursor:pointer;
-	cursor:hand;
 	color:#000 !important;
 	background-color:#F0F8FF;
 }
 .ffb-match {
-	font-weight:bold;
+	/*font-weight:bold;*/
 	color:#000;
 }
 
