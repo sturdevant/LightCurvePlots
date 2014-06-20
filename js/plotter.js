@@ -1,3 +1,10 @@
+// A few convenient functions
+var mjd = function(d) { return d.MJD; };
+var on = function(d) { return d.on; };
+var off = function(d) { return d.off; };
+var diff = function(d) { return d.on - d.off; };
+var rat = function(d) { if (d.off == 0) { return 0; } return d.on / d.off; };
+
 // Set margins
 var margin = {top: 10, right: 10, bottom: 100, left: 40},
     margin2 = {top: 430, right: 10, bottom: 20, left: 40},
@@ -21,27 +28,59 @@ var brush = d3.svg.brush()
    .x(x2)
    .on("brush", brushed);
 
+// Set plot type
+function set_type(t) {
+   foc = [];
+   con = [];
+   if (t == "sep") {
+      foc.push(on);
+      foc.push(off);
+      con.push(off);
+   } else if (t == "rat") {
+      foc.push(rat);
+      con.push(rat);
+   } else if (t == "diff") {
+      foc.push(diff);
+      con.push(diff);
+   }
+
+   set_domains(foc, con);
+}
+
+function set_domains(foc, con) {
+   min = 0,
+   max = 0;
+   for (var i = 0; i < foc.length; i++) {
+     min = Math.min(min, d3.min(data.map(foc[i])));
+     max = Math.max(max, d3.max(data.map(foc[i])));
+   }
+   x.domain(d3.extent(data, mjd));
+   y.domain([min, max]);
+   x2.domain(x.domain());
+   y2.domain(y.domain());
+}
+
 function add_plot() {
-// Set width & height
- svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+   // Set width & height
+   svg = d3.select("body").append("svg")
+       .attr("width", width + margin.left + margin.right)
+       .attr("height", height + margin.top + margin.bottom)
 
-// Clip path to not go beyond width & height
-svg.append("defs").append("clipPath")
-    .attr("id", "clip")
-    .append("rect")
-    .attr("width", width)
-    .attr("height", height);
+   // Clip path to not go beyond width & height
+   svg.append("defs").append("clipPath")
+       .attr("id", "clip")
+       .append("rect")
+       .attr("width", width)
+       .attr("height", height);
 
-// Translate focus & context to proper location
- focus = svg.append("g")
-    .attr("class", "focus")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+   // Translate focus & context to proper location
+   focus = svg.append("g")
+       .attr("class", "focus")
+       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
- context = svg.append("g")
-    .attr("class", "context")
-    .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
+   context = svg.append("g")
+       .attr("class", "context")
+       .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
 }
 
 function brushed() {

@@ -56,7 +56,7 @@ svg {
 <form> 
 <!--<div id="fb"></div>-->
 <div id="fb">
-<select id="pltype" name="dropdown">
+<select id="pltype" name="dropdown" onchange="st()">
 <option value="sep">Seperate</option>
 <option value="rat">Ratio</option>
 <option value="diff">Difference</option>
@@ -77,20 +77,29 @@ $('#fb').flexbox(sources, {
    showArrow: false,
    width: 250,
    onSelect: function() {
-      // Clear prev graph
-      focus.selectAll("path").remove();
-      context.selectAll("path").remove();
-      focus.selectAll("g").remove();
-      context.selectAll("g").remove();
-
       // Get db col name & plot!
       var name = document.getElementById("fb_hidden").getAttribute("value");
-      fetch(name)
-      plot(0);
-      // Plot in previous context
-      brushed();
+      fetch(name);
+      st();
    }
 });
+
+var e = document.getElementById("pltype");
+
+function st() {
+   var tp = e.options[e.selectedIndex].value;
+
+   // Clear prev graph
+   focus.selectAll("path").remove();
+   context.selectAll("path").remove();
+   focus.selectAll("g").remove();
+   context.selectAll("g").remove();
+   
+   // Set plot type & plot
+   set_type(tp);
+   plot(0);
+   brushed();
+}
 
 // Interpolations for focus & context
 var foc_off = d3.svg.area()
@@ -156,15 +165,9 @@ function plot(error) {
     d.off = +d.off;
   });
   
-  x.domain(d3.extent(data, function(d) { return d.MJD; }));
-
+  set_type(tp);
   // Decides which graph to draw depending on selected plot type
   if (tp == "sep") {
-     // Set x2, y & y2 domain
-     y.domain([0, d3.max(data.map(function(d) { return d3.max([d.off, d.on]); })) ]);
-     x2.domain(x.domain());
-     y2.domain(y.domain());
-     
      // Append foc_on & foc_off to focus (on & off graphs)
      focus.append("path")
          .datum(data)
@@ -183,15 +186,6 @@ function plot(error) {
          .attr("d", con_off);
 
   } else if (tp == "rat") {
-     // Set y domain, check for / 0, set x2 & y2 domain
-     y.domain([0, d3.max(data.map(function(d) { 
-          if (d.off == 0)
-            return 0;
-          return d.on / d.off; 
-     })) ]);
-     x2.domain(x.domain());
-     y2.domain(y.domain());
-
      // Append ratio graph to focus and context
      focus.append("path")
          .datum(data)
@@ -204,12 +198,6 @@ function plot(error) {
          .attr("d", con_rat);
 
   } else if (tp == "diff") {
-     // Set y, y2 & x2 domain
-     y.domain([d3.min(data.map(function(d) { return d.on - d.off; })), 
-               d3.max(data.map(function(d) { return d.on - d.off; }))]);
-     x2.domain(x.domain());
-     y2.domain(y.domain());
-     
      // Append difference graph to focus & context
      focus.append("path")
          .datum(data)
