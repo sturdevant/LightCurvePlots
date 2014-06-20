@@ -54,8 +54,8 @@
 .ffb-sel {
 	cursor:pointer;
 	cursor:hand;
-	color:#fff !important;
-	background-color:#39f;
+	color:#000 !important;
+	background-color:#F0F8FF;
 }
 .ffb-match {
 	font-weight:bold;
