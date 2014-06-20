@@ -1,2 +1,2 @@
 python -m SimpleHTTPServer 8080
-http://172.16.55.205:8080/
+http://0.0.0.0:8080/
