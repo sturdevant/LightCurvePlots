@@ -28,6 +28,58 @@ var brush = d3.svg.brush()
    .x(x2)
    .on("brush", brushed);
 
+// Set interpolations
+// Interpolations for focus & context
+var foc_off = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+    .y0(height)
+    .y1(function(d) { return y(d.off); });
+
+var foc_on = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+    .y0(height)
+    .y1(function(d) { return y(d.on); });
+
+var foc_diff = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+    .y0(height)
+    .y1(function(d) { return y(d.on - d.off); });
+
+var foc_rat = d3.svg.area()
+    .interpolate("basis")
+    .x(function(d) { return x(d.MJD); })
+    .y0(height)
+    .y1(function(d) {
+       if (d.off == 0)
+         return y(0);
+       return y(d.on / d.off);
+    });
+
+var con_off = d3.svg.area()
+   .interpolate("basis")
+   .x(function(d) { return x2(d.MJD); })
+   .y0(height2)
+   .y1(function(d) { return y2(d.off); });
+
+var con_rat = d3.svg.area()
+   .interpolate("basis")
+   .x(function(d) { return x2(d.MJD); })
+   .y0(height2)
+   .y1(function(d) {
+      if (d.off == 0)
+        return y2(0);
+      return y2(d.on / d.off);
+    });
+
+var con_diff = d3.svg.area()
+   .interpolate("basis")
+   .x(function(d) { return x2(d.MJD); })
+   .y0(height2)
+   .y1(function(d) { return y2(d.on - d.off); });
+
 // Set plot type
 function set_type(t) {
    foc = [];
@@ -47,6 +99,7 @@ function set_type(t) {
    set_domains(foc, con);
 }
 
+// Set x & y domains according to smallest & largest values
 function set_domains(foc, con) {
    min = 0,
    max = 0;
@@ -83,6 +136,81 @@ function add_plot() {
        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
 }
 
+function plot() {
+  var tp = e.options[e.selectedIndex].value;
+
+  data.forEach(function(d) {
+    d.MJD = +d.MJD;
+    d.on = +d.on;
+    d.off = +d.off;
+  });
+
+  set_type(tp);
+  // Decides which graph to draw depending on selected plot type
+  if (tp == "sep") {
+     // Append foc_on & foc_off to focus (on & off graphs)
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", foc_off);
+
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area3")
+         .attr("d", foc_on);
+
+     // Append con_off to context (off graph since it's a bit smoother!)
+     context.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", con_off);
+
+  } else if (tp == "rat") {
+     // Append ratio graph to focus and context
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", foc_rat);
+     context.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", con_rat);
+
+  } else if (tp == "diff") {
+     // Append difference graph to focus & context
+     focus.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", foc_diff);
+
+     context.append("path")
+         .datum(data)
+         .attr("class", "area")
+         .attr("d", con_diff);
+  }
+
+
+  focus.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  focus.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+
+  context.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height2 + ")")
+      .call(xAxis2);
+
+  context.append("g")
+      .attr("class", "x brush")
+      .call(brush)
+    .selectAll("rect")
+      .attr("y", -6)
+      .attr("height", height2 + 7);
+};
 function brushed() {
   var e = document.getElementById("pltype");
   var tp = e.options[e.selectedIndex].value;

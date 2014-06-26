@@ -33,7 +33,7 @@ xhr.onload = function(e) {
    // Plot the Crab!
    var crab = "FGLJ0534_5PP2201_PSRJ0534PP2200";
    fetch(crab);
-   plot(0);
+   plot();
 };
 
 // Send request for sql file
