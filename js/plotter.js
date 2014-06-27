@@ -32,71 +32,82 @@ var brush = d3.svg.brush()
 // Interpolations for focus & context
 var foc_off = d3.svg.area()
     .interpolate("basis")
-    .x(function(d) { return x(d.MJD); })
+    .x(function(d) { return x(mjd(d)); })
     .y0(height)
-    .y1(function(d) { return y(d.off); });
+    .y1(function(d) { return y(off(d)); });
 
 var foc_on = d3.svg.area()
     .interpolate("basis")
-    .x(function(d) { return x(d.MJD); })
+    .x(function(d) { return x(mjd(d)); })
     .y0(height)
-    .y1(function(d) { return y(d.on); });
+    .y1(function(d) { return y(on(d)); });
 
 var foc_diff = d3.svg.area()
     .interpolate("basis")
-    .x(function(d) { return x(d.MJD); })
+    .x(function(d) { return x(mjd(d)); })
     .y0(height)
-    .y1(function(d) { return y(d.on - d.off); });
+    .y1(function(d) { return y(diff(d)); });
 
 var foc_rat = d3.svg.area()
     .interpolate("basis")
-    .x(function(d) { return x(d.MJD); })
+    .x(function(d) { return x(mjd(d)); })
     .y0(height)
-    .y1(function(d) {
-       if (d.off == 0)
-         return y(0);
-       return y(d.on / d.off);
-    });
+    .y1(function(d) { return y(rat(d)); });
 
 var con_off = d3.svg.area()
    .interpolate("basis")
-   .x(function(d) { return x2(d.MJD); })
+   .x(function(d) { return x2(mjd(d)); })
    .y0(height2)
-   .y1(function(d) { return y2(d.off); });
+   .y1(function(d) { return y2(off(d)); });
 
 var con_rat = d3.svg.area()
    .interpolate("basis")
-   .x(function(d) { return x2(d.MJD); })
+   .x(function(d) { return x2(mjd(d)); })
    .y0(height2)
-   .y1(function(d) {
-      if (d.off == 0)
-        return y2(0);
-      return y2(d.on / d.off);
-    });
+   .y1(function(d) { return y2(rat(d); });
 
 var con_diff = d3.svg.area()
    .interpolate("basis")
-   .x(function(d) { return x2(d.MJD); })
+   .x(function(d) { return x2(mjd(d)); })
    .y0(height2)
-   .y1(function(d) { return y2(d.on - d.off); });
+   .y1(function(d) { return y2(diff(d)); });
+
+function set_interpolations(foc, con) {
+   for (var i = 0; i < foc.length; i++) {
+      foc[i].i = d3.svg.area()
+         .interpolate("basis")
+         .x(function(d) { return x(mjd(d)); })
+         .y0(height)
+         .y1(function(d) { return y(foc[i].f)});
+   }
+   
+   for (var i = 0; i < con.length; i++) {
+      con[i].i = d3.svg.area()
+         .interpolate("basis")
+         .x(function(d) { return x2(mjd(d)); })
+         .y0(height2)
+         .y1(function(d) { return y2(con[i].f)});
+   }
+}
 
 // Set plot type
 function set_type(t) {
    foc = [];
    con = [];
    if (t == "sep") {
-      foc.push(on);
-      foc.push(off);
-      con.push(off);
+      foc.push({f:on});
+      foc.push({f:off});
+      con.push({f:off});
    } else if (t == "rat") {
-      foc.push(rat);
-      con.push(rat);
+      foc.push({f:rat});
+      con.push({f:rat});
    } else if (t == "diff") {
-      foc.push(diff);
-      con.push(diff);
+      foc.push({f:diff});
+      con.push({f:diff});
    }
 
    set_domains(foc, con);
+   set_interpolations(foc, con);
 }
 
 // Set x & y domains according to smallest & largest values
@@ -104,8 +115,8 @@ function set_domains(foc, con) {
    min = 0,
    max = 0;
    for (var i = 0; i < foc.length; i++) {
-     min = Math.min(min, d3.min(data.map(foc[i])));
-     max = Math.max(max, d3.max(data.map(foc[i])));
+     min = Math.min(min, d3.min(data.map(foc[i].f)));
+     max = Math.max(max, d3.max(data.map(foc[i].f)));
    }
    x.domain(d3.extent(data, mjd));
    y.domain([min, max]);
@@ -138,12 +149,6 @@ function add_plot() {
 
 function plot() {
   var tp = e.options[e.selectedIndex].value;
-
-  data.forEach(function(d) {
-    d.MJD = +d.MJD;
-    d.on = +d.on;
-    d.off = +d.off;
-  });
 
   set_type(tp);
   // Decides which graph to draw depending on selected plot type
@@ -212,7 +217,6 @@ function plot() {
       .attr("height", height2 + 7);
 };
 function brushed() {
-  var e = document.getElementById("pltype");
   var tp = e.options[e.selectedIndex].value;
 
   x.domain(brush.empty() ? x2.domain() : brush.extent());

@@ -16,11 +16,12 @@ function fetch(name) {
    // data will contain json points w/ on, off & mjd values
    data = [];
    for (var i = 0; i < on_tbl.values.length; i++) {
-      point = {MJD: mjd_tbl.values[i],
-         on: on_tbl.values[i],
-         off: off_tbl.values[i]};
+      point = {MJD: +mjd_tbl.values[i],
+         on: +on_tbl.values[i],
+         off: +off_tbl.values[i]};
       data.push(point);
    }
+
    return data;
 }
 
