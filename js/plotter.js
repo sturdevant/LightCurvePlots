@@ -64,7 +64,7 @@ var con_rat = d3.svg.area()
    .interpolate("basis")
    .x(function(d) { return x2(mjd(d)); })
    .y0(height2)
-   .y1(function(d) { return y2(rat(d); });
+   .y1(function(d) { return y2(rat(d)); });
 
 var con_diff = d3.svg.area()
    .interpolate("basis")
