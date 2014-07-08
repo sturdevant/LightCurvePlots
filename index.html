@@ -6,7 +6,7 @@ svg {
   font: 10px sans-serif;
 }
 
-.area {
+.area0 {
    fill: none;
    stroke: steelblue;
    stroke-width: 2px;
@@ -18,7 +18,7 @@ svg {
   clip-path: url(#clip);
    }
 
-.area3 {
+.area1 {
    fill: none;
    stroke: black;
    stroke-width: 2px;
@@ -54,9 +54,8 @@ svg {
 <body>
 
 <form> 
-<!--<div id="fb"></div>-->
 <div id="fb">
-<select id="pltype" name="dropdown" onchange="st()">
+<select id="pltype" name="dropdown" onchange="plot()">
 <option value="sep">Seperate</option>
 <option value="rat">Ratio</option>
 <option value="diff">Difference</option>
@@ -80,26 +79,12 @@ $('#fb').flexbox(sources, {
       // Get db col name & plot!
       var name = document.getElementById("fb_hidden").getAttribute("value");
       fetch(name);
-      st();
+      plot();
    }
 });
 
 var e = document.getElementById("pltype");
 
-function st() {
-   var tp = e.options[e.selectedIndex].value;
-
-   // Clear prev graph
-   focus.selectAll("path").remove();
-   context.selectAll("path").remove();
-   focus.selectAll("g").remove();
-   context.selectAll("g").remove();
-   
-   // Plot
-   plot();
-   brushed();
-}
-
 add_plot();
-  </script>
+</script>
 </body>

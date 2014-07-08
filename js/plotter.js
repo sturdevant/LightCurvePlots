@@ -72,6 +72,9 @@ var con_diff = d3.svg.area()
    .y0(height2)
    .y1(function(d) { return y2(diff(d)); });
 
+/*
+might be nice to have later to automatically generate interpolations
+still not able to get it to work yet though...
 function set_interpolations(foc, con) {
    for (var i = 0; i < foc.length; i++) {
       foc[i].i = d3.svg.area()
@@ -89,35 +92,36 @@ function set_interpolations(foc, con) {
          .y1(function(d) { return y2(con[i].f)});
    }
 }
-
+*/
 // Set plot type
 function set_type(t) {
    foc = [];
    con = [];
    if (t == "sep") {
-      foc.push({f:on});
-      foc.push({f:off});
-      con.push({f:off});
+      foc.push({f:on, i:foc_on});
+      foc.push({f:off, i:foc_off});
+      con.push({f:off, i:con_off});
    } else if (t == "rat") {
-      foc.push({f:rat});
-      con.push({f:rat});
+      foc.push({f:rat, i:foc_rat});
+      con.push({f:rat, i:con_rat});
    } else if (t == "diff") {
-      foc.push({f:diff});
-      con.push({f:diff});
+      foc.push({f:diff, i:foc_diff});
+      con.push({f:diff, i:con_diff});
    }
 
-   set_domains(foc, con);
-   set_interpolations(foc, con);
+   set_domains();
+   //set_interpolations(foc, con);
 }
 
 // Set x & y domains according to smallest & largest values
-function set_domains(foc, con) {
+function set_domains() {
    min = 0,
    max = 0;
    for (var i = 0; i < foc.length; i++) {
      min = Math.min(min, d3.min(data.map(foc[i].f)));
      max = Math.max(max, d3.max(data.map(foc[i].f)));
    }
+
    x.domain(d3.extent(data, mjd));
    y.domain([min, max]);
    x2.domain(x.domain());
@@ -148,88 +152,66 @@ function add_plot() {
 }
 
 function plot() {
-  var tp = e.options[e.selectedIndex].value;
+   var tp = e.options[e.selectedIndex].value;
+   
+   // Clear prev graph
+   focus.selectAll("path").remove();
+   context.selectAll("path").remove();
+   focus.selectAll("g").remove();
+   context.selectAll("g").remove();
 
-  set_type(tp);
-  // Decides which graph to draw depending on selected plot type
-  if (tp == "sep") {
-     // Append foc_on & foc_off to focus (on & off graphs)
-     focus.append("path")
+   set_type(tp);
+   
+   // Append interpolations in foc & con to focus & context
+   for (var i = 0; i < foc.length; i++) {
+      focus.append("path")
          .datum(data)
-         .attr("class", "area")
-         .attr("d", foc_off);
-
-     focus.append("path")
+         .attr("class", "area"+i)
+         .attr("d", foc[i].i);
+   }
+   
+   for (var i = 0; i < con.length; i++) {
+      context.append("path")
          .datum(data)
-         .attr("class", "area3")
-         .attr("d", foc_on);
+         .attr("class", "area"+i)
+         .attr("d", con[i].i);
+   }
+  
+   add_axes();
+   brushed();
+};
 
-     // Append con_off to context (off graph since it's a bit smoother!)
-     context.append("path")
-         .datum(data)
-         .attr("class", "area")
-         .attr("d", con_off);
-
-  } else if (tp == "rat") {
-     // Append ratio graph to focus and context
-     focus.append("path")
-         .datum(data)
-         .attr("class", "area")
-         .attr("d", foc_rat);
-     context.append("path")
-         .datum(data)
-         .attr("class", "area")
-         .attr("d", con_rat);
-
-  } else if (tp == "diff") {
-     // Append difference graph to focus & context
-     focus.append("path")
-         .datum(data)
-         .attr("class", "area")
-         .attr("d", foc_diff);
-
-     context.append("path")
-         .datum(data)
-         .attr("class", "area")
-         .attr("d", con_diff);
-  }
-
-
-  focus.append("g")
+function add_axes() {
+   // x & y for focus
+   focus.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
 
-  focus.append("g")
+   focus.append("g")
       .attr("class", "y axis")
       .call(yAxis);
 
-  context.append("g")
+   // x & brush for context
+   context.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height2 + ")")
       .call(xAxis2);
 
-  context.append("g")
+   context.append("g")
       .attr("class", "x brush")
       .call(brush)
-    .selectAll("rect")
+      .selectAll("rect")
       .attr("y", -6)
       .attr("height", height2 + 7);
 };
+
 function brushed() {
-  var tp = e.options[e.selectedIndex].value;
+   x.domain(brush.empty() ? x2.domain() : brush.extent());
 
-  x.domain(brush.empty() ? x2.domain() : brush.extent());
+   for (var i = 0; i < foc.length; i++) {
+      focus.select(".area"+i).attr("d", foc[i].i);
+   }
 
-  // Depending on plot type, redraw graph in focus
-  if (tp == "sep") {
-     focus.select(".area").attr("d", foc_off);
-     focus.select(".area3").attr("d", foc_on);
-  } else if (tp == "rat") {
-     focus.select(".area").attr("d", foc_rat);
-  } else if (tp == "diff") {
-     focus.select(".area").attr("d", foc_diff);
-  }
-
-  focus.select(".x.axis").call(xAxis);
+   focus.select(".x.axis").call(xAxis);
 }

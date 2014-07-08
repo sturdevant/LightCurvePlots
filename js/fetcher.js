@@ -8,11 +8,11 @@ function fetch(name) {
    if (typeof db === 'undefined') {
       return;
    }
-
+   
    var on_tbl = db.exec("SELECT "+ name + " FROM lightcurve_on")[0];
    var off_tbl = db.exec("SELECT " + name + " FROM lightcurve_off")[0];
    var mjd_tbl = db.exec("SELECT MJD FROM lightcurve_on")[0];
-
+   
    // data will contain json points w/ on, off & mjd values
    data = [];
    for (var i = 0; i < on_tbl.values.length; i++) {
@@ -21,7 +21,7 @@ function fetch(name) {
          off: +off_tbl.values[i]};
       data.push(point);
    }
-
+   
    return data;
 }
 
