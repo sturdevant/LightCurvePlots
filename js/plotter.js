@@ -74,43 +74,42 @@ var con_diff = d3.svg.area()
 
 /*
 might be nice to have later to automatically generate interpolations
-still not able to get it to work yet though...
-function set_interpolations(foc, con) {
+still not able to get it to work yet though...*/
+function set_interpolations() {
    for (var i = 0; i < foc.length; i++) {
       foc[i].i = d3.svg.area()
          .interpolate("basis")
          .x(function(d) { return x(mjd(d)); })
          .y0(height)
-         .y1(function(d) { return y(foc[i].f)});
+         .y1(function(d) { return y(foc[i].f(d))});
    }
-   
    for (var i = 0; i < con.length; i++) {
       con[i].i = d3.svg.area()
          .interpolate("basis")
          .x(function(d) { return x2(mjd(d)); })
          .y0(height2)
-         .y1(function(d) { return y2(con[i].f)});
+         .y1(function(d) { return y2(con[i].f(d))});
    }
 }
-*/
+
 // Set plot type
 function set_type(t) {
    foc = [];
    con = [];
    if (t == "sep") {
-      foc.push({f:on, i:foc_on});
-      foc.push({f:off, i:foc_off});
-      con.push({f:off, i:con_off});
+      foc.push({f:on});
+      foc.push({f:off});
+      con.push({f:off});
    } else if (t == "rat") {
-      foc.push({f:rat, i:foc_rat});
-      con.push({f:rat, i:con_rat});
+      foc.push({f:rat});
+      con.push({f:rat});
    } else if (t == "diff") {
-      foc.push({f:diff, i:foc_diff});
-      con.push({f:diff, i:con_diff});
+      foc.push({f:diff});
+      con.push({f:diff});
    }
-
+   
+   // Rescale domains based on new functions
    set_domains();
-   //set_interpolations(foc, con);
 }
 
 // Set x & y domains according to smallest & largest values
@@ -118,11 +117,13 @@ function set_domains() {
    min = 0,
    max = 0;
    for (var i = 0; i < foc.length; i++) {
-     min = Math.min(min, d3.min(data.map(foc[i].f)));
-     max = Math.max(max, d3.max(data.map(foc[i].f)));
+      for (var j = 0; j < data.length; j ++) {
+         min = Math.min(min, d3.min(data[j].map(foc[i].f)));
+         max = Math.max(max, d3.max(data[j].map(foc[i].f)));
+      }
    }
 
-   x.domain(d3.extent(data, mjd));
+   x.domain(d3.extent(data[0], mjd));
    y.domain([min, max]);
    x2.domain(x.domain());
    y2.domain(y.domain());
@@ -164,17 +165,34 @@ function plot() {
    
    // Append interpolations in foc & con to focus & context
    for (var i = 0; i < foc.length; i++) {
-      focus.append("path")
-         .datum(data)
-         .attr("class", "area"+i)
-         .attr("d", foc[i].i);
+      var interp = d3.svg.area()
+         .interpolate("basis")
+         .x(function(d) { return x(mjd(d)); })
+         .y0(height)
+         .y1(function(d) { return y(foc[i].f(d))});
+      for (var j = 0; j < data.length; j++) {
+         dta = data[j]; 
+         focus.append("path")
+            .datum(dta)
+            .attr("class", "area"+i)
+            .attr("d", interp);
+      }
    }
-   
+   // can combine w/ above loop to make more efficient...
    for (var i = 0; i < con.length; i++) {
-      context.append("path")
-         .datum(data)
-         .attr("class", "area"+i)
-         .attr("d", con[i].i);
+      var interp = d3.svg.area()
+         .interpolate("basis")
+         .x(function(d) { return x2(mjd(d)); })
+         .y0(height)
+         .y1(function(d) { return y2(con[i].f(d))});
+      
+      for (var j = 0; j < data.length; j++) {
+         dta = data[j]
+         context.append("path")
+            .datum(dta)
+            .attr("class", "area"+i)
+            .attr("d", interp);
+      }
    }
   
    add_axes();
@@ -210,7 +228,13 @@ function brushed() {
    x.domain(brush.empty() ? x2.domain() : brush.extent());
 
    for (var i = 0; i < foc.length; i++) {
-      focus.select(".area"+i).attr("d", foc[i].i);
+      var interp = d3.svg.area()
+         .interpolate("basis")
+         .x(function(d) { return x(mjd(d)); })
+         .y0(height)
+         .y1(function(d) { return y(foc[i].f(d))});
+      
+      focus.selectAll(".area"+i).attr("d", interp);
    }
 
    focus.select(".x.axis").call(xAxis);

@@ -14,15 +14,15 @@ function fetch(name) {
    var mjd_tbl = db.exec("SELECT MJD FROM lightcurve_on")[0];
    
    // data will contain json points w/ on, off & mjd values
-   data = [];
+   var dta = [];
    for (var i = 0; i < on_tbl.values.length; i++) {
       point = {MJD: +mjd_tbl.values[i],
          on: +on_tbl.values[i],
          off: +off_tbl.values[i]};
-      data.push(point);
+      dta.push(point);
    }
    
-   return data;
+   return dta;
 }
 
 // When db is loaded, store into a var & plot the crab as default
@@ -33,7 +33,8 @@ xhr.onload = function(e) {
 
    // Plot the Crab!
    var crab = "FGLJ0534_5PP2201_PSRJ0534PP2200";
-   fetch(crab);
+   data = [];
+   data.push(fetch(crab));
    plot();
 };
 

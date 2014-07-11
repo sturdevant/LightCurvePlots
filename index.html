@@ -13,16 +13,16 @@ svg {
    clip-path: url(#clip);
    }
 
-.area2 {
-  fill: steelblue;
-  clip-path: url(#clip);
-   }
-
 .area1 {
    fill: none;
    stroke: black;
    stroke-width: 2px;
    clip-path: url(#clip);
+   }
+
+.area2 {
+  fill: steelblue;
+  clip-path: url(#clip);
    }
 
 .axis path,
@@ -54,12 +54,14 @@ svg {
 <body>
 
 <form> 
-<div id="fb">
+<div id="fb0">
 <select id="pltype" name="dropdown" onchange="plot()">
 <option value="sep">Seperate</option>
 <option value="rat">Ratio</option>
 <option value="diff">Difference</option>
 </select>
+</div>
+<div id="fb1">
 </div>
 </form>
 
@@ -69,7 +71,7 @@ svg {
 
 // Set textbox's style & select behavior
 // More info: http://fairwaytech.com/flexbox/
-$('#fb').flexbox(sources, {
+$('#fb0').flexbox(sources, {
    watermark: 'Enter source name',
    paging: false,
    maxVisibleRows: 8,
@@ -77,12 +79,25 @@ $('#fb').flexbox(sources, {
    width: 250,
    onSelect: function() {
       // Get db col name & plot!
-      var name = document.getElementById("fb_hidden").getAttribute("value");
-      fetch(name);
+      var name = document.getElementById("fb0_hidden").getAttribute("value");
+      data[0] = fetch(name);
       plot();
    }
 });
 
+$('#fb1').flexbox(sources, {
+   watermark: 'Enter source name',
+   paging: false,
+   maxVisibleRows: 8,
+   showArrow: false,
+   width: 250,
+   onSelect: function() {
+      // Get db col name & plot!
+      var name = document.getElementById("fb1_hidden").getAttribute("value");
+      data.length == 2 ?  data[1] = fetch(name) : data.push(fetch(name));
+      plot();
+   }
+});
 var e = document.getElementById("pltype");
 
 add_plot();
