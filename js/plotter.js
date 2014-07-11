@@ -174,8 +174,13 @@ function plot() {
          dta = data[j]; 
          focus.append("path")
             .datum(dta)
-            .attr("class", "area"+i)
-            .attr("d", interp);
+            .attr("class", "area"+i+""+j)
+            .attr("d", interp)
+            .on("mouseover",function(){
+               // Cool effect to bring hovered el't to front
+               var sel = d3.select(this);
+               sel.moveToFront();
+            });
       }
    }
    // can combine w/ above loop to make more efficient...
@@ -190,7 +195,7 @@ function plot() {
          dta = data[j]
          context.append("path")
             .datum(dta)
-            .attr("class", "area"+i)
+            .attr("class", "area"+i+""+j)
             .attr("d", interp);
       }
    }
@@ -224,6 +229,13 @@ function add_axes() {
       .attr("height", height2 + 7);
 };
 
+// Moves selection to front
+d3.selection.prototype.moveToFront = function() {
+   return this.each(function(){
+      this.parentNode.appendChild(this);
+   });
+};
+
 function brushed() {
    x.domain(brush.empty() ? x2.domain() : brush.extent());
 
@@ -233,8 +245,8 @@ function brushed() {
          .x(function(d) { return x(mjd(d)); })
          .y0(height)
          .y1(function(d) { return y(foc[i].f(d))});
-      
-      focus.selectAll(".area"+i).attr("d", interp);
+      for (var j = 0; j < data.length; j++)
+         focus.select(".area"+i+""+j).attr("d", interp);
    }
 
    focus.select(".x.axis").call(xAxis);
