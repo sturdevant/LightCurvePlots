@@ -1,9 +1,9 @@
 // A few convenient functions
-var mjd = function(d) { return d.MJD; };
+var mjd = function(d) { return d.mjd; };
 var on = function(d) { return d.on; };
 var off = function(d) { return d.off; };
-var diff = function(d) { return d.on - d.off; };
-var rat = function(d) { if (d.off == 0) { return 0; } return d.on / d.off; };
+var diff = function(d) { return d.diff; };
+var rat = function(d) { return d.rat; };
 
 // Set margins
 var margin = {top: 10, right: 10, bottom: 100, left: 40},
@@ -28,86 +28,42 @@ var brush = d3.svg.brush()
    .x(x2)
    .on("brush", brushed);
 
-// Set interpolations
-// Interpolations for focus & context
-var foc_off = d3.svg.area()
-    .interpolate("basis")
-    .x(function(d) { return x(mjd(d)); })
-    .y0(height)
-    .y1(function(d) { return y(off(d)); });
-
-var foc_on = d3.svg.area()
-    .interpolate("basis")
-    .x(function(d) { return x(mjd(d)); })
-    .y0(height)
-    .y1(function(d) { return y(on(d)); });
-
-var foc_diff = d3.svg.area()
-    .interpolate("basis")
-    .x(function(d) { return x(mjd(d)); })
-    .y0(height)
-    .y1(function(d) { return y(diff(d)); });
-
-var foc_rat = d3.svg.area()
-    .interpolate("basis")
-    .x(function(d) { return x(mjd(d)); })
-    .y0(height)
-    .y1(function(d) { return y(rat(d)); });
-
-var con_off = d3.svg.area()
-   .interpolate("basis")
-   .x(function(d) { return x2(mjd(d)); })
-   .y0(height2)
-   .y1(function(d) { return y2(off(d)); });
-
-var con_rat = d3.svg.area()
-   .interpolate("basis")
-   .x(function(d) { return x2(mjd(d)); })
-   .y0(height2)
-   .y1(function(d) { return y2(rat(d)); });
-
-var con_diff = d3.svg.area()
-   .interpolate("basis")
-   .x(function(d) { return x2(mjd(d)); })
-   .y0(height2)
-   .y1(function(d) { return y2(diff(d)); });
-
-/*
-might be nice to have later to automatically generate interpolations
-still not able to get it to work yet though...*/
-function set_interpolations() {
-   for (var i = 0; i < foc.length; i++) {
-      foc[i].i = d3.svg.area()
-         .interpolate("basis")
-         .x(function(d) { return x(mjd(d)); })
-         .y0(height)
-         .y1(function(d) { return y(foc[i].f(d))});
-   }
-   for (var i = 0; i < con.length; i++) {
-      con[i].i = d3.svg.area()
-         .interpolate("basis")
-         .x(function(d) { return x2(mjd(d)); })
-         .y0(height2)
-         .y1(function(d) { return y2(con[i].f(d))});
-   }
-}
-
 // Set plot type
 function set_type(t) {
    foc = [];
    con = [];
+   var f;
    if (t == "sep") {
-      foc.push({f:on});
-      foc.push({f:off});
-      con.push({f:off});
+      var on_int = d3.svg.area()
+         .interpolate("basis")
+         .x(function(d) { return x(mjd(d)); })
+         .y0(height)
+         .y1(function(d) { return y(on(d))});
+      
+      foc.push({f:on, i: on_int});
+      
+      f = off;
    } else if (t == "rat") {
-      foc.push({f:rat});
-      con.push({f:rat});
+      f = rat;
    } else if (t == "diff") {
-      foc.push({f:diff});
-      con.push({f:diff});
+      f = diff;
    }
    
+   var foc_int = d3.svg.area()
+      .interpolate("basis")
+      .x(function(d) { return x(mjd(d)); })
+      .y0(height)
+      .y1(function(d) { return y(f(d))});
+
+   var con_int = d3.svg.area()
+      .interpolate("basis")
+      .x(function(d) { return x2(mjd(d)); })
+      .y0(height2)
+      .y1(function(d) { return y2(f(d))});
+
+   foc.push({f: f, i: foc_int});
+   con.push({f: f, i: con_int});
+
    // Rescale domains based on new functions
    set_domains();
 }
@@ -163,43 +119,27 @@ function plot() {
 
    set_type(tp);
    
-   // Append interpolations in foc & con to focus & context
-   for (var i = 0; i < foc.length; i++) {
-      var interp = d3.svg.area()
-         .interpolate("basis")
-         .x(function(d) { return x(mjd(d)); })
-         .y0(height)
-         .y1(function(d) { return y(foc[i].f(d))});
-      for (var j = 0; j < data.length; j++) {
-         dta = data[j]; 
+   for (var j = 0; j < data.length; j++) {
+      dta = data[j];
+      for (var i = 0; i < foc.length; i++) {
          focus.append("path")
             .datum(dta)
             .attr("class", "area"+i+""+j)
-            .attr("d", interp)
+            .attr("d", foc[i].i)
             .on("mouseover",function(){
                // Cool effect to bring hovered el't to front
                var sel = d3.select(this);
                sel.moveToFront();
             });
       }
-   }
-   // can combine w/ above loop to make more efficient...
-   for (var i = 0; i < con.length; i++) {
-      var interp = d3.svg.area()
-         .interpolate("basis")
-         .x(function(d) { return x2(mjd(d)); })
-         .y0(height)
-         .y1(function(d) { return y2(con[i].f(d))});
-      
-      for (var j = 0; j < data.length; j++) {
-         dta = data[j]
+      for (var i = 0; i < con.length; i++) {
          context.append("path")
             .datum(dta)
             .attr("class", "area"+i+""+j)
-            .attr("d", interp);
+            .attr("d", con[i].i);
       }
    }
-  
+   
    add_axes();
    brushed();
 };
@@ -239,15 +179,9 @@ d3.selection.prototype.moveToFront = function() {
 function brushed() {
    x.domain(brush.empty() ? x2.domain() : brush.extent());
 
-   for (var i = 0; i < foc.length; i++) {
-      var interp = d3.svg.area()
-         .interpolate("basis")
-         .x(function(d) { return x(mjd(d)); })
-         .y0(height)
-         .y1(function(d) { return y(foc[i].f(d))});
+   for (var i = 0; i < foc.length; i++) 
       for (var j = 0; j < data.length; j++)
-         focus.select(".area"+i+""+j).attr("d", interp);
-   }
+         focus.select(".area"+i+""+j).attr("d", foc[i].i);
 
    focus.select(".x.axis").call(xAxis);
 }
