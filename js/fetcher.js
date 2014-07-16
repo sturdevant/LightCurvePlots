@@ -1,5 +1,6 @@
 var xhr = new XMLHttpRequest();
-xhr.open('GET', 'hawc_test_lightcurves_repaired.db', true);
+//xhr.open('GET', 'hawc_test_lightcurves_repaired.db', true);
+xhr.open('GET', 'hawc_test_lightcurves_copy.db', true);
 xhr.responseType = 'arraybuffer';
 
 // Given a database file & name of source, returns MJD, on & off data
@@ -21,26 +22,37 @@ function fetch(name) {
 
    // Average on # of days, O(1) data points in # of days instead of O(n)
    // Shouldn't need high resolution when looking at a long timeframe anyway!
-   var days = Math.ceil(mjd_tbl.values[l-1] - mjd_tbl.values[0]);
-
+   var days = Math.ceil((mjd_tbl.values[l-1] - mjd_tbl.values[0])/2);
+   
    // Throw out remainder points
    l = l - l % days;
    
    // data will contain json points w/ on, off, diff, rat & mjd values
    var dta = [];
+   var z = 0;
    for (var i = 0; i < l; i += days) {
-      var mjd = 0;
+      // Average mjd of range
+      var mjd = .5*(+mjd_tbl.values[i+days-1] + +mjd_tbl.values[i]);
       var on = 0;
       var off = 0;
       // Average values to reduce # of data points, 
       // slightly reduces resolution, but vastly improves performance!
       for (var j = 0; j < days; j++) {
-         mjd += +mjd_tbl.values[i+j]/days;
          on += +on_tbl.values[i+j]/days;
          off += +off_tbl.values[i+j]/days;
       }
+      // Either increment if this is zero or reset zero counter
+      on == 0 && off == 0 ? z++ : z = 0;
+      // Every eleven zeros, remove the middle (so that we have a padding of 5
+      // zero points, makes the interpolation look nicer than no padding!)
+      if (z == 11) {
+         z = 10;
+         dta.splice(dta.length - 6, 1);
+      }
+
       var diff = on - off;
       var rat = off == 0 ? 0 : on/off;
+      
       point = {mjd: mjd,
          on: on,
          off: off,
@@ -48,7 +60,6 @@ function fetch(name) {
          rat: rat};
       dta.push(point);
    }
-   
    return dta;
 }
 

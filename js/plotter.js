@@ -118,7 +118,6 @@ function plot() {
    context.selectAll("g").remove();
 
    set_type(tp);
-   
    for (var j = 0; j < data.length; j++) {
       dta = data[j];
       for (var i = 0; i < foc.length; i++) {
