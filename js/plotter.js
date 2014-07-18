@@ -74,12 +74,14 @@ function set_domains() {
    max = 0;
    for (var i = 0; i < foc.length; i++) {
       for (var j = 0; j < data.length; j ++) {
-         min = Math.min(min, d3.min(data[j].map(foc[i].f)));
-         max = Math.max(max, d3.max(data[j].map(foc[i].f)));
+         if (data[j] != null) {
+            min = Math.min(min, d3.min(data[j].map(foc[i].f)));
+            max = Math.max(max, d3.max(data[j].map(foc[i].f)));
+         }
       }
    }
 
-   x.domain(d3.extent(data[0], mjd));
+   x.domain([start.value, end.value]);
    y.domain([min, max]);
    x2.domain(x.domain());
    y2.domain(y.domain());
@@ -119,23 +121,25 @@ function plot() {
 
    set_type(tp);
    for (var j = 0; j < data.length; j++) {
-      dta = data[j];
-      for (var i = 0; i < foc.length; i++) {
-         focus.append("path")
-            .datum(dta)
-            .attr("class", "area"+i+""+j)
-            .attr("d", foc[i].i)
-            .on("mouseover",function(){
-               // Cool effect to bring hovered el't to front
-               var sel = d3.select(this);
-               sel.moveToFront();
-            });
-      }
-      for (var i = 0; i < con.length; i++) {
-         context.append("path")
-            .datum(dta)
-            .attr("class", "area"+i+""+j)
-            .attr("d", con[i].i);
+      if (data[j] != null){
+         dta = data[j];
+         for (var i = 0; i < foc.length; i++) {
+            focus.append("path")
+               .datum(dta)
+               .attr("class", "area"+i+""+j)
+               .attr("d", foc[i].i)
+               .on("mouseover",function(){
+                  // Cool effect to bring hovered el't to front
+                  var sel = d3.select(this);
+                  sel.moveToFront();
+               });
+         }
+         for (var i = 0; i < con.length; i++) {
+            context.append("path")
+               .datum(dta)
+               .attr("class", "area"+i+""+j)
+               .attr("d", con[i].i);
+         }
       }
    }
    

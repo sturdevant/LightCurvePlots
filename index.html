@@ -6,8 +6,6 @@ svg {
   font: 10px sans-serif;
 }
 
-.area {
-}
 .area00 {
    fill: none;
    stroke: steelblue;
@@ -46,16 +44,12 @@ svg {
    opacity: .75;
    }
 
-.area2 {
-  fill: steelblue;
-  clip-path: url(#clip);
-   }
-
 .axis path,
 .axis line {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
+  position:absolute;
 }
 
 .brush .extent {
@@ -85,7 +79,10 @@ svg {
 <option value="sep">Seperate</option>
 <option value="rat">Ratio</option>
 <option value="diff">Difference</option>
-</select>
+</select>Start Date:
+<input id="start" type="number" name="Start Date">End Date:</input>
+<input id="end" type="number" name="End Date"></input>
+<button id="fetch" type="button" onclick="fetchAll()">Fetch</button>
 </div>
 <div id="fb1">
 </div>
@@ -93,8 +90,17 @@ svg {
 <div align="center">
 <script>
 // See http://bl.ocks.org/mbostock/3894205 and
-// http://bl.ocks.org/mbostock/1667367
+// http://bl.ocks.org/mbostock/1667367 for focus & context & difference plot
 
+function fetchAll() {
+   var name0 = document.getElementById("fb0_hidden").getAttribute("value");
+   var name1 = document.getElementById("fb1_hidden").getAttribute("value");
+
+   name0 != "" ?  data[0] = fetch(name0) : data[0] = null;
+   name1 != "" ?  data[1] = fetch(name1) : data[1] = null;
+
+   plot();
+}
 // Set textbox's style & select behavior
 // More info: http://fairwaytech.com/flexbox/
 $('#fb0').flexbox(sources, {
