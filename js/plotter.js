@@ -4,6 +4,13 @@ var on = function(d) { return d.on; };
 var off = function(d) { return d.off; };
 var diff = function(d) { return d.diff; };
 var rat = function(d) { return d.rat; };
+var g = function(d) { return d.gap; };
+var gap_i = d3.svg.area()
+         .interpolate("basis")
+         .x(function(d) { return x(mjd(d)); })
+         .y0(height)
+         .y1(function(d) { return y(g(d))});
+
 
 // Set margins
 var margin = {top: 10, right: 10, bottom: 100, left: 40},
@@ -60,7 +67,7 @@ function set_type(t) {
       .x(function(d) { return x2(mjd(d)); })
       .y0(height2)
       .y1(function(d) { return y2(f(d))});
-
+   
    foc.push({f: f, i: foc_int});
    con.push({f: f, i: con_int});
 
@@ -120,6 +127,7 @@ function plot() {
    context.selectAll("g").remove();
 
    set_type(tp);
+
    for (var j = 0; j < data.length; j++) {
       if (data[j] != null){
          dta = data[j];
@@ -143,6 +151,11 @@ function plot() {
       }
    }
    
+   focus.append("path")
+      .datum(gap_arr)
+      .attr("class", "gap")
+      .attr("d", gap_i)
+
    add_axes();
    brushed();
 };
@@ -186,5 +199,6 @@ function brushed() {
       for (var j = 0; j < data.length; j++)
          focus.select(".area"+i+""+j).attr("d", foc[i].i);
 
+   focus.selectAll(".gap").attr("d", gap_i);
    focus.select(".x.axis").call(xAxis);
 }

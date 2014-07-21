@@ -2,17 +2,42 @@ var xhr = new XMLHttpRequest();
 //xhr.open('GET', 'hawc_test_lightcurves_repaired.db', true);
 xhr.open('GET', 'hawc_test_lightcurves_copy.db', true);
 // timing info
-t0 = new Date().getTime();
+var t0 = new Date().getTime();
 xhr.responseType = 'arraybuffer';
 
 m_diff = .0014
 function find_gap(arr) {
-   a = [];
+   var t0 = new Date().getTime();
+   var mjd = [];
+   var gaps = [];
    for (var i = 1; i < arr.length; i++)
-      if (arr[i] - arr[i-1] > m_diff)
-         a.push([arr[i-1], arr[i]]);
-   return a;
+      if (arr[i] - arr[i-1] > m_diff) {
+         // push 3 points to the left of gap w/ value -1000
+         for (var j = 0; j < 3; j++) {
+            point = {mjd: arr[i-1] - j*m_diff/3,
+                     gap: -1000};
+            gaps.push(point);
+         }
+         // push 3 points within the gap w/ value 1000
+         for (var j = 0; j < 3; j++) {
+            point = {mjd: +arr[i-1]+j*(arr[i]-arr[i-1])/3,
+                     gap: 10000};
+            gaps.push(point);
+         }
+         // push 3 points to the right of gap w/ value -1000
+         for (var j = 0; j < 3; j++) {
+            point = {mjd: +arr[i] + j*m_diff/3,
+                     gap: 0};
+            gaps.push(point);
+         }
+      }
+   var t1 = new Date().getTime();
+   console.log("time to find gaps");
+   console.log(t1-t0);
+   console.log(gaps);
+   return gaps;
 }   
+
 // Given a database file & name of source, returns MJD, on & off data
 function fetch(name) {
    // Make sure db is already loaded
@@ -21,20 +46,20 @@ function fetch(name) {
    }
   
    // timing info
-   t0 = new Date().getTime();
+   var t0 = new Date().getTime();
    // Load arrays within date range
    var range = " WHERE MJD BETWEEN " + start.value + " AND " + end.value;
    var mjd_tbl = db.exec("SELECT MJD FROM lightcurve_on" + range)[0];
    var on_tbl = db.exec("SELECT "+ name + " FROM lightcurve_on" + range)[0];
    var off_tbl = db.exec("SELECT " + name + " FROM lightcurve_off" + range)[0];
    
-   t1 = new Date().getTime();
+   var t1 = new Date().getTime();
    console.log("time to query db (ms)");
    console.log(t1 - t0);
    
 
    // testing for gap detection!
-   console.log(find_gap(mjd_tbl.values));
+   gap_arr = find_gap(mjd_tbl.values);
 
 
    t0 = new Date().getTime();
@@ -60,7 +85,6 @@ function fetch(name) {
    // data will contain json points w/ on, off, diff, rat & mjd values
    var dta = [];
    var z = 0;
-   var s = 1;
    for (var i = 0; i < l; i += days) {
       // Average mjd of range
       var mjd = .5*(+mjd_tbl.values[i+days-1] + +mjd_tbl.values[i]);
@@ -100,7 +124,7 @@ function fetch(name) {
 // When db is loaded, store into a var & plot the crab as default
 xhr.onload = function(e) {
    // timing info
-   t1 = new Date().getTime();
+   var t1 = new Date().getTime();
    console.log("time to load db file (ms)");
    console.log(t1-t0);
    // Load database into db
