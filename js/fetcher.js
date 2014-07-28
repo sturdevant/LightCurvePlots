@@ -1,40 +1,18 @@
 var xhr = new XMLHttpRequest();
 //xhr.open('GET', 'hawc_test_lightcurves_repaired.db', true);
 xhr.open('GET', 'hawc_test_lightcurves_copy.db', true);
-// timing info
-var t0 = new Date().getTime();
 xhr.responseType = 'arraybuffer';
 
-m_diff = .0014
+m_diff = .0014;
 function find_gap(arr) {
-   var t0 = new Date().getTime();
-   var mjd = [];
    var gaps = [];
-   for (var i = 1; i < arr.length; i++)
+   for (var i = 1; i < arr.length; i++) {
       if (arr[i] - arr[i-1] > m_diff) {
-         // push 3 points to the left of gap w/ value -1000
-         for (var j = 0; j < 3; j++) {
-            point = {mjd: arr[i-1] - j*m_diff/3,
-                     gap: -1000};
-            gaps.push(point);
-         }
-         // push 3 points within the gap w/ value 1000
-         for (var j = 0; j < 3; j++) {
-            point = {mjd: +arr[i-1]+j*(arr[i]-arr[i-1])/3,
-                     gap: 10000};
-            gaps.push(point);
-         }
-         // push 3 points to the right of gap w/ value -1000
-         for (var j = 0; j < 3; j++) {
-            point = {mjd: +arr[i] + j*m_diff/3,
-                     gap: 0};
-            gaps.push(point);
-         }
+         gaps.push(i-1);
+         gaps.push(i);
       }
-   var t1 = new Date().getTime();
-   console.log("time to find gaps");
-   console.log(t1-t0);
-   console.log(gaps);
+   }
+
    return gaps;
 }   
 
@@ -45,25 +23,15 @@ function fetch(name) {
       return;
    }
   
-   // timing info
-   var t0 = new Date().getTime();
    // Load arrays within date range
    var range = " WHERE MJD BETWEEN " + start.value + " AND " + end.value;
    var mjd_tbl = db.exec("SELECT MJD FROM lightcurve_on" + range)[0];
    var on_tbl = db.exec("SELECT "+ name + " FROM lightcurve_on" + range)[0];
    var off_tbl = db.exec("SELECT " + name + " FROM lightcurve_off" + range)[0];
    
-   var t1 = new Date().getTime();
-   console.log("time to query db (ms)");
-   console.log(t1 - t0);
-   
-
    // testing for gap detection!
    gap_arr = find_gap(mjd_tbl.values);
 
-
-   t0 = new Date().getTime();
-   
    // Make sure we have arrays of equal length (chop off last elt's)
    var lMjd = mjd_tbl.values.length;
    var lOn = on_tbl.values.length;
@@ -90,11 +58,14 @@ function fetch(name) {
       var mjd = .5*(+mjd_tbl.values[i+days-1] + +mjd_tbl.values[i]);
       var on = 0;
       var off = 0;
+      var gap = -1000;
       // Average values to reduce # of data points, 
       // slightly reduces resolution, but vastly improves performance!
       for (var j = 0; j < days; j++) {
          on += +on_tbl.values[i+j]/days;
          off += +off_tbl.values[i+j]/days;
+         if (gap_arr.indexOf(i+j) != -1)
+            gap = 1000;
       }
       // Either increment if this is zero or reset zero counter
       on == 0 && off == 0 ? z++ : z = 0;
@@ -112,21 +83,15 @@ function fetch(name) {
          on: on,
          off: off,
          diff: diff,
-         rat: rat};
+         rat: rat,
+         gap: gap};
       dta.push(point);
    }
-   t1 = new Date().getTime();
-   console.log("time to process all datapoints (ms)");
-   console.log(t1 - t0);
    return dta;
 }
 
 // When db is loaded, store into a var & plot the crab as default
 xhr.onload = function(e) {
-   // timing info
-   var t1 = new Date().getTime();
-   console.log("time to load db file (ms)");
-   console.log(t1-t0);
    // Load database into db
    var uInt8Array = new Uint8Array(this.response);
    db = new SQL.Database(uInt8Array);

@@ -4,13 +4,7 @@ var on = function(d) { return d.on; };
 var off = function(d) { return d.off; };
 var diff = function(d) { return d.diff; };
 var rat = function(d) { return d.rat; };
-var g = function(d) { return d.gap; };
-var gap_i = d3.svg.area()
-         .interpolate("basis")
-         .x(function(d) { return x(mjd(d)); })
-         .y0(height)
-         .y1(function(d) { return y(g(d))});
-
+var gap = function(d) { return d.gap; };
 
 // Set margins
 var margin = {top: 10, right: 10, bottom: 100, left: 40},
@@ -29,6 +23,19 @@ var x = d3.scale.linear().range([0, width]),
 var xAxis = d3.svg.axis().scale(x).orient("bottom"),
     xAxis2 = d3.svg.axis().scale(x2).orient("bottom"),
     yAxis = d3.svg.axis().scale(y).orient("left");
+
+// Set gap interpolations
+var gap_f = d3.svg.area()
+         .interpolate("step")
+         .x(function(d) { return x(mjd(d)); })
+         .y0(height)
+         .y1(function(d) { return y(gap(d))});
+
+var gap_c = d3.svg.area()
+         .interpolate("step")
+         .x(function(d) { return x2(mjd(d)); })
+         .y0(height2)
+         .y1(function(d) { return y2(gap(d))});
 
 // Set brush
 var brush = d3.svg.brush()
@@ -138,8 +145,8 @@ function plot() {
                .attr("d", foc[i].i)
                .on("mouseover",function(){
                   // Cool effect to bring hovered el't to front
-                  var sel = d3.select(this);
-                  sel.moveToFront();
+                  d3.select(this).moveToFront();
+                  d3.select(".gap").moveToFront();
                });
          }
          for (var i = 0; i < con.length; i++) {
@@ -152,9 +159,14 @@ function plot() {
    }
    
    focus.append("path")
-      .datum(gap_arr)
+      .datum(dta)
       .attr("class", "gap")
-      .attr("d", gap_i)
+      .attr("d", gap_f);
+
+   context.append("path")
+      .datum(dta)
+      .attr("class", "gap")
+      .attr("d", gap_c);
 
    add_axes();
    brushed();
@@ -199,6 +211,6 @@ function brushed() {
       for (var j = 0; j < data.length; j++)
          focus.select(".area"+i+""+j).attr("d", foc[i].i);
 
-   focus.selectAll(".gap").attr("d", gap_i);
+   focus.selectAll(".gap").attr("d", gap_f);
    focus.select(".x.axis").call(xAxis);
 }
