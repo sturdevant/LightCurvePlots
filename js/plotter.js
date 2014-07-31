@@ -124,20 +124,24 @@ function add_plot() {
        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
 }
 
-function plot() {
-   var tp = e.options[e.selectedIndex].value;
-   
-   // Clear prev graph
+// Clear prev graph
+function clear() {
    focus.selectAll("path").remove();
    context.selectAll("path").remove();
    focus.selectAll("g").remove();
    context.selectAll("g").remove();
+}
 
+function plot() {
+   var tp = e.options[e.selectedIndex].value;
+   
+   // Clear prev graph, set type
+   clear();
    set_type(tp);
-
+   var set_gaps = false;
    for (var j = 0; j < data.length; j++) {
       if (data[j] != null){
-         dta = data[j];
+         var dta = data[j];
          for (var i = 0; i < foc.length; i++) {
             focus.append("path")
                .datum(dta)
@@ -155,19 +159,25 @@ function plot() {
                .attr("class", "area"+i+""+j)
                .attr("d", con[i].i);
          }
+         // If not already done, put gaps in, else, move gaps to front
+         if (!set_gaps) {
+            focus.append("path")
+               .datum(dta)
+               .attr("class", "gap")
+               .attr("d", gap_f);
+
+            context.append("path")
+               .datum(dta)
+               .attr("class", "gap")
+               .attr("d", gap_c);
+            
+            set_gaps = true;
+         } else {
+            d3.selectAll(".gap").moveToFront();
+         }
       }
    }
    
-   focus.append("path")
-      .datum(dta)
-      .attr("class", "gap")
-      .attr("d", gap_f);
-
-   context.append("path")
-      .datum(dta)
-      .attr("class", "gap")
-      .attr("d", gap_c);
-
    add_axes();
    brushed();
 };

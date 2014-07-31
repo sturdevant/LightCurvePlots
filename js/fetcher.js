@@ -3,8 +3,11 @@ var xhr = new XMLHttpRequest();
 xhr.open('GET', 'hawc_test_lightcurves_copy.db', true);
 xhr.responseType = 'arraybuffer';
 
-m_diff = .0014;
+// Send request for sql file
+xhr.send();
+
 function find_gap(arr) {
+   var m_diff = .0014;
    var gaps = [];
    for (var i = 1; i < arr.length; i++) {
       if (arr[i] - arr[i-1] > m_diff) {
@@ -29,8 +32,8 @@ function fetch(name) {
    var on_tbl = db.exec("SELECT "+ name + " FROM lightcurve_on" + range)[0];
    var off_tbl = db.exec("SELECT " + name + " FROM lightcurve_off" + range)[0];
    
-   // testing for gap detection!
-   gap_arr = find_gap(mjd_tbl.values);
+   // Detect gaps in data
+   var gaps = find_gap(mjd_tbl.values);
 
    // Make sure we have arrays of equal length (chop off last elt's)
    var lMjd = mjd_tbl.values.length;
@@ -64,7 +67,7 @@ function fetch(name) {
       for (var j = 0; j < days; j++) {
          on += +on_tbl.values[i+j]/days;
          off += +off_tbl.values[i+j]/days;
-         if (gap_arr.indexOf(i+j) != -1)
+         if (gaps.indexOf(i+j) != -1)
             gap = 1000;
       }
       // Either increment if this is zero or reset zero counter
@@ -96,8 +99,9 @@ xhr.onload = function(e) {
    var uInt8Array = new Uint8Array(this.response);
    db = new SQL.Database(uInt8Array);
 
-   // Set Default time range
-   end.value = 56812.89;
+   // Set Default time range as past 24 hrs
+   console.log(get_mjd(new Date()));
+   end.value = 56812.89; // to be replaced with get_mjd(new Date())
    start.value = end.value - 1;
 
    // Plot the Crab!
@@ -110,5 +114,24 @@ xhr.onload = function(e) {
    plot();
 };
 
-// Send request for sql file
-xhr.send();
+// for reference, see http://en.wikipedia.org/wiki/Julian_day#Calculation
+// verified accuracy w/ http://tycho.usno.navy.mil/cgi-bin/daterdnm.sh
+var get_mjd = function(d) {
+   var year = d.getUTCFullYear();
+   var month = d.getUTCMonth() + 1; // getMonth gives 0 for jan, want 1
+   var day = d.getUTCDate();
+   var hour = d.getUTCHours();
+   var min = d.getUTCMinutes();
+   var sec = d.getUTCSeconds(); // don't need this much precision, but why not?
+
+   var a = Math.floor((14-month)/12);
+   var y = year + 4800 - a;
+   var m = month + 12*a - 3;
+
+   // Using Gregorian calendar
+   var jdn = day + Math.floor((153*m+2)/5) + 365*y + Math.floor(y/4);
+   jdn += -Math.floor(y/100) + Math.floor(y/400) - 32045;
+
+   var jd = jdn + (hour - 12)/24 + min/1440 + sec/86400;
+   return jd - 2400000.5; // want mjd, not jd
+}
