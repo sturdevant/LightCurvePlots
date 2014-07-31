@@ -52,24 +52,37 @@ function fetch(name) {
    
    // Throw out remainder points
    l = l - l % days;
-   
    // data will contain json points w/ on, off, diff, rat & mjd values
    var dta = [];
+   // number of consecutive zeros encountered
    var z = 0;
+   // array to keep track of prev/current/next value was a gap
+   var g = [false, false, false];
+
    for (var i = 0; i < l; i += days) {
       // Average mjd of range
       var mjd = .5*(+mjd_tbl.values[i+days-1] + +mjd_tbl.values[i]);
       var on = 0;
       var off = 0;
+      var gn = false;
       var gap = -1000;
+
       // Average values to reduce # of data points, 
       // slightly reduces resolution, but vastly improves performance!
       for (var j = 0; j < days; j++) {
          on += +on_tbl.values[i+j]/days;
          off += +off_tbl.values[i+j]/days;
-         if (gaps.indexOf(i+j) != -1)
-            gap = 1000;
+         // Check if next point will have a gap
+         if (gaps.indexOf(i+j+days) != -1)
+            gn = true;
       }
+      
+      // if prev, curr or next are gaps, don't display this point
+      g.shift();
+      g.push(gn);
+      if (g[0] || g[1] || g[2])
+         gap = 1000;
+
       // Either increment if this is zero or reset zero counter
       on == 0 && off == 0 ? z++ : z = 0;
       // Every eleven zeros, remove the middle (so that we have a padding of 5
@@ -109,6 +122,7 @@ xhr.onload = function(e) {
    fb0_hidden.value = crab;
    data = [];
    data.push(fetch(crab));
+   
    // Make data length 2
    data.push(null);
    plot();
