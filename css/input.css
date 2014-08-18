@@ -1,0 +1,107 @@
+/* Input textbox - do not specify a width here, it will be overwritten */
+.ffb-input 
+{
+	float:left;
+	color:#000; /* must specify along with watermark color */
+	height:16px; /* required for webkit browsers (Safari, Chrome) */
+}
+
+.ffb-input:focus, textarea:focus {
+   outline:none;
+}
+
+/* Color of watermark, if present */
+.ffb-input.watermark { /* added and removed dynamically */
+	color:#888; /* must specify along with input color */
+}
+
+.ffb-no-results 
+{
+	padding:2px;
+	color:#888;
+	font-style:italic;
+	border-bottom:1px solid #828790;
+}
+
+/* Input textbox - do not specify a width here, it will be overwritten */
+.ffb-input 
+{
+   float:left;
+   color:#000; /* must specify along with watermark color */
+   height:16px; /* required for webkit browsers (Safari, Chrome) */
+}
+
+.ffb-input:focus, textarea:focus {
+   outline:none;
+}
+
+/* Color of watermark, if present */
+.ffb-input.watermark { /* added and removed dynamically */
+   color:#888; /* must specify along with input color */
+}
+
+.ffb-no-results 
+{
+   padding:2px;
+   color:#888;
+   font-style:italic;
+   border-bottom:1px solid #828790;
+}
+
+/* Container for dropdown contents */
+.ffb {
+   position:absolute; /* this guy's parent div is hard-coded to position:relative */
+   overflow:hidden;
+   background-color:#fff; /* Give it a background-color, so it's not transparent */
+   box-shadow: 5px 5px 5px #888888;
+   opacity: 0.90;
+}
+
+/* Inner div for dropdown */
+.ffb .content {
+   overflow:auto;
+}
+
+.ffb .content .row {
+   border-bottom:none;/* remove borders between each row, looks bad!*/
+   color:#000;
+   height:20px;
+   clear:both;
+   vertical-align:middle;
+}
+
+.ffb-sel {
+   color:#000 !important;
+   background-color:#F0F8FF;
+}
+
+.ffb-match {
+   vertical-align:top;
+   color:#000;
+}
+
+.ffb .box {
+   width:22px;
+   margin:2px;
+}
+
+.ffb .summary {
+   font-size:85%;
+}
+
+select {
+   background-color:#fff;   
+   margin-left:2px;
+   margin-right:2px;
+}
+
+input {
+   margin-left:2px;
+   margin-right:2px;
+}
+
+span {
+   display: inline-block;
+   vertical-align: middle;
+   line-height: normal;      
+}

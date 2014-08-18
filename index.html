@@ -1,75 +1,11 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-
-svg {
-  font: 10px sans-serif;
-}
-
-.gap { 
-   fill: #fff;
-   clip-path: url(#clip);
-   opacity: 1;
-}
-
-.area00 {
-   fill: none;
-   stroke: steelblue;
-   stroke-width: 2px;
-   clip-path: url(#clip);
-   opacity: .75;
-   }
-
-.area00:hover {
-   opacity: 1;
-}
-.area01:hover {
-   opacity: 1;
-}
-.area01 {
-   fill: none;
-   stroke: orange;
-   stroke-width: 2px;
-   clip-path: url(#clip);
-   opacity: .75;
-   }
-
-.area10 {
-   fill: none;
-   stroke: black;
-   stroke-width: 2px;
-   clip-path: url(#clip);
-   opacity: .75;
-   }
-
-.area11 {
-   fill:none;
-   stroke: black;
-   stroke-width: 2px;
-   clip-path: url(#clip);
-   opacity: .75;
-   }
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-  position:absolute;
-}
-
-.brush .extent {
-  stroke: #fff;
-  fill-opacity: .125;
-  shape-rendering: crispEdges;
-}
-
-</style>
 
 <head>
-<link rel="stylesheet" type="text/css" href="css/jquery.flexbox.css">
+<link rel="stylesheet" type="text/css" href="css/input.css">
+<link rel="stylesheet" type="text/css" href="css/plot.css">
 <script src="js/names.js"></script>
-<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="js/jquery-1.11.1.min.js"></script>
 <script src="js/jquery.flexbox.min.js"></script>
 <script src="js/d3.min.js"></script>
 <script src='js/sql.js'></script>
@@ -80,24 +16,29 @@ svg {
 <body>
 
 <form> 
+
 <div id="fb0">
-<select id="pltype" name="dropdown" onchange="plot()">
+
+<select id="pltype" name="dropdown" onchange="plot(e.options[e.selectedIndex].value)">
 <option value="sep">Seperate</option>
 <option value="rat">Ratio</option>
 <option value="diff">Difference</option>
-</select>Start Date:
-<input id="start" type="number" name="Start Date">End Date:</input>
+</select>
+
+<span>Start Date:</span>
+<input id="start" type="number" name="Start Date"></input>
+<span>End Date:</span>
 <input id="end" type="number" name="End Date"></input>
 <button id="fetch" type="button" onclick="fetchAll()">Fetch</button>
 </div>
+
 <div id="fb1">
 </div>
+
 </form>
-<div align="center">
 <script>
 // See http://bl.ocks.org/mbostock/3894205 and
 // http://bl.ocks.org/mbostock/1667367 for focus & context & difference plot
-
 function fetchAll() {
    var name0 = document.getElementById("fb0_hidden").getAttribute("value");
    var name1 = document.getElementById("fb1_hidden").getAttribute("value");
@@ -105,12 +46,13 @@ function fetchAll() {
    name0 != "" ?  data[0] = fetch(name0) : data[0] = null;
    name1 != "" ?  data[1] = fetch(name1) : data[1] = null;
 
-   plot();
+   plot(e.options[e.selectedIndex].value);
 }
+
 // Set textbox's style & select behavior
 // More info: http://fairwaytech.com/flexbox/
 $('#fb0').flexbox(sources, {
-   watermark: 'Enter source name',
+   watermark: 'Crab',
    paging: false,
    maxVisibleRows: 8,
    showArrow: false,
@@ -119,7 +61,7 @@ $('#fb0').flexbox(sources, {
       // Get db col name & plot!
       var name = document.getElementById("fb0_hidden").getAttribute("value");
       data[0] = fetch(name);
-      plot();
+      plot(e.options[e.selectedIndex].value);
    }
 });
 
@@ -133,7 +75,7 @@ $('#fb1').flexbox(sources, {
       // Get db col name & plot!
       var name = document.getElementById("fb1_hidden").getAttribute("value");
       data.length == 2 ?  data[1] = fetch(name) : data.push(fetch(name));
-      plot();
+      plot(e.options[e.selectedIndex].value);
    }
 });
 var e = document.getElementById("pltype");

@@ -68,7 +68,7 @@ function set_type(t) {
       .x(function(d) { return x(mjd(d)); })
       .y0(height)
       .y1(function(d) { return y(f(d))});
-
+   
    var con_int = d3.svg.area()
       .interpolate("basis")
       .x(function(d) { return x2(mjd(d)); })
@@ -77,24 +77,24 @@ function set_type(t) {
    
    foc.push({f: f, i: foc_int});
    con.push({f: f, i: con_int});
-
+   
    // Rescale domains based on new functions
    set_domains();
 }
 
 // Set x & y domains according to smallest & largest values
 function set_domains() {
-   min = 0,
-   max = 0;
+   var min = 0;
+   var max = 0;
    for (var i = 0; i < foc.length; i++) {
-      for (var j = 0; j < data.length; j ++) {
+      for (var j = 0; j < data.length; j++) {
          if (data[j] != null) {
             min = Math.min(min, d3.min(data[j].map(foc[i].f)));
             max = Math.max(max, d3.max(data[j].map(foc[i].f)));
          }
       }
    }
-
+   
    x.domain([start.value, end.value]);
    y.domain([min, max]);
    x2.domain(x.domain());
@@ -106,19 +106,19 @@ function add_plot() {
    svg = d3.select("body").append("svg")
        .attr("width", width + margin.left + margin.right)
        .attr("height", height + margin.top + margin.bottom)
-
+   
    // Clip path to not go beyond width & height
    svg.append("defs").append("clipPath")
        .attr("id", "clip")
        .append("rect")
        .attr("width", width)
        .attr("height", height);
-
+   
    // Translate focus & context to proper location
    focus = svg.append("g")
        .attr("class", "focus")
        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
+   
    context = svg.append("g")
        .attr("class", "context")
        .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
@@ -132,9 +132,7 @@ function clear() {
    context.selectAll("g").remove();
 }
 
-function plot() {
-   var tp = e.options[e.selectedIndex].value;
-   
+function plot(tp) {
    // Clear prev graph, set type
    clear();
    set_type(tp);
@@ -153,19 +151,21 @@ function plot() {
                   d3.select(".gap").moveToFront();
                });
          }
+         
          for (var i = 0; i < con.length; i++) {
             context.append("path")
                .datum(dta)
                .attr("class", "area"+i+""+j)
                .attr("d", con[i].i);
          }
+          
          // If not already done, put gaps in, else, move gaps to front
          if (!set_gaps) {
             focus.append("path")
                .datum(dta)
                .attr("class", "gap")
                .attr("d", gap_f);
-
+            
             context.append("path")
                .datum(dta)
                .attr("class", "gap")
@@ -188,17 +188,17 @@ function add_axes() {
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
-
+   
    focus.append("g")
       .attr("class", "y axis")
       .call(yAxis);
-
+   
    // x & brush for context
    context.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height2 + ")")
       .call(xAxis2);
-
+   
    context.append("g")
       .attr("class", "x brush")
       .call(brush)
@@ -214,13 +214,16 @@ d3.selection.prototype.moveToFront = function() {
    });
 };
 
+
 function brushed() {
    x.domain(brush.empty() ? x2.domain() : brush.extent());
-
+   
+   // Redraw plots
    for (var i = 0; i < foc.length; i++) 
       for (var j = 0; j < data.length; j++)
          focus.select(".area"+i+""+j).attr("d", foc[i].i);
-
+   
+   // Redraw gaps & x axis
    focus.selectAll(".gap").attr("d", gap_f);
    focus.select(".x.axis").call(xAxis);
 }
