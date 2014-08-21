@@ -6,6 +6,34 @@ xhr.responseType = 'arraybuffer';
 // Send request for sql file
 xhr.send();
 
+// for reference, see http://en.wikipedia.org/wiki/Julian_day#Calculation
+// verified accuracy w/ http://tycho.usno.navy.mil/cgi-bin/daterdnm.sh
+var get_mjd = function(d) {
+   var year = d.getUTCFullYear();
+   var month = d.getUTCMonth() + 1; // getMonth gives 0 for jan, want 1
+   var day = d.getUTCDate();
+   var hour = d.getUTCHours();
+   var min = d.getUTCMinutes();
+   var sec = d.getUTCSeconds(); // don't need this much precision, but why not?
+   
+   var a = Math.floor((14-month)/12);
+   var y = year + 4800 - a;
+   var m = month + 12*a - 3;
+   
+   // Using Gregorian calendar
+   var jdn = day + Math.floor((153*m+2)/5) + 365*y + Math.floor(y/4);
+   jdn += -Math.floor(y/100) + Math.floor(y/400) - 32045;
+   
+   var jd = jdn + (hour - 12)/24 + min/1440 + sec/86400;
+   return jd - 2400000.5; // want mjd, not jd
+}
+
+// Set Default time range as past 24 hrs
+console.log(get_mjd(new Date()));
+end.value = 56812.89; // to be replaced with get_mjd(new Date())
+start.value = Math.floor((end.value - 1)*100)/100;
+data = [];
+
 // Find gaps within the data
 function find_gap(arr) {
    var m_diff = .0014; // 2 minute gap in mjd
@@ -59,6 +87,7 @@ function fetch(name) {
    var z = 0;
    // array to keep track of prev/current/next value was a gap
    var g = [false, false, false];
+   var cd = 0;
    
    for (var i = 0; i < l; i += days) {
       // Average mjd of range
@@ -66,15 +95,16 @@ function fetch(name) {
       var on = 0;
       var off = 0;
       var gn = false;
-      var gap = -1000;
+      var gap = -1000000;
       
       // Average values to reduce # of data points, 
       // slightly reduces resolution, but vastly improves performance!
-      for (var j = 0; j < days; j++) {
-         on += +on_tbl.values[i+j]/days;
-         off += +off_tbl.values[i+j]/days;
+      for (var j = i; j < days + i; j++) {
+         on += +on_tbl.values[j]/days;
+         off += +off_tbl.values[j]/days;
+         cd += days*(on - off);
          // Check if next point will have a gap
-         if (gaps.indexOf(i+j+days) != -1)
+         if (gaps.indexOf(j+days) != -1)
             gn = true;
       }
       
@@ -82,7 +112,7 @@ function fetch(name) {
       g.shift();
       g.push(gn);
       if (g[0] || g[1] || g[2])
-         gap = 1000;
+         gap = 1000000;
       
       // Either increment if this is zero or reset zero counter
       on == 0 && off == 0 ? z++ : z = 0;
@@ -95,14 +125,15 @@ function fetch(name) {
       
       var diff = on - off;
       var rat = off == 0 ? 0 : on/off;
-      
       dta.push({mjd: mjd,
          on: on,
          off: off,
          diff: diff,
+         cd: cd,
          rat: rat,
          gap: gap});
    }
+   
    return dta;
 }
 
@@ -112,35 +143,9 @@ xhr.onload = function(e) {
    var uInt8Array = new Uint8Array(this.response);
    db = new SQL.Database(uInt8Array);
    
-   // Set Default time range as past 24 hrs
-   console.log(get_mjd(new Date()));
-   end.value = 56812.89; // to be replaced with get_mjd(new Date())
-   start.value = end.value - 1;
-   
    // Plot the Crab!
    fb0_hidden.value = "FGLJ0534_5PP2201_PSRJ0534PP2200";
-   data = [];
    fetchAll();
 };
 
-// for reference, see http://en.wikipedia.org/wiki/Julian_day#Calculation
-// verified accuracy w/ http://tycho.usno.navy.mil/cgi-bin/daterdnm.sh
-var get_mjd = function(d) {
-   var year = d.getUTCFullYear();
-   var month = d.getUTCMonth() + 1; // getMonth gives 0 for jan, want 1
-   var day = d.getUTCDate();
-   var hour = d.getUTCHours();
-   var min = d.getUTCMinutes();
-   var sec = d.getUTCSeconds(); // don't need this much precision, but why not?
-   
-   var a = Math.floor((14-month)/12);
-   var y = year + 4800 - a;
-   var m = month + 12*a - 3;
-   
-   // Using Gregorian calendar
-   var jdn = day + Math.floor((153*m+2)/5) + 365*y + Math.floor(y/4);
-   jdn += -Math.floor(y/100) + Math.floor(y/400) - 32045;
-   
-   var jd = jdn + (hour - 12)/24 + min/1440 + sec/86400;
-   return jd - 2400000.5; // want mjd, not jd
-}
+

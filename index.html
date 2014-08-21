@@ -1,28 +1,27 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
+<style>
+.unld {
+   margin-left:260px;
+}
+</style>
+
 <head>
 <link rel="stylesheet" type="text/css" href="css/input.css">
 <link rel="stylesheet" type="text/css" href="css/plot.css">
-<script src="js/names.js"></script>
-<script src="js/jquery-1.11.1.min.js"></script>
-<script src="js/jquery.flexbox.min.js"></script>
-<script src="js/d3.min.js"></script>
-<script src='js/sql.js'></script>
-<script src="js/plotter.js"></script>
-<script src="js/fetcher.js"></script>
 </head>
 
 <body>
 
 <form> 
-
-<div id="fb0">
+<div id="fb0" class="unld">
 
 <select id="pltype" name="dropdown" onchange="plot(e.options[e.selectedIndex].value)">
 <option value="sep">Seperate</option>
 <option value="rat">Ratio</option>
 <option value="diff">Difference</option>
+<option value="cd">Cumulative</option>
 </select>
 
 <span>Start Date:</span>
@@ -32,10 +31,20 @@
 <button id="fetch" type="button" onclick="fetchAll()">Fetch</button>
 </div>
 
+
 <div id="fb1">
 </div>
 
 </form>
+
+<script src="js/names.js"></script>
+<script src="js/jquery-1.11.1.min.js"></script>
+<script src="js/jquery.flexbox.min.js"></script>
+<script src="js/d3.min.js"></script>
+<script src='js/sql.js'></script>
+<script src="js/plotter.js"></script>
+<script src="js/fetcher.js"></script>
+
 <script>
 // See http://bl.ocks.org/mbostock/3894205 and
 // http://bl.ocks.org/mbostock/1667367 for focus & context & difference plot
@@ -65,6 +74,9 @@ $('#fb0').flexbox(sources, {
    }
 });
 
+// Seems weird, but removes the place holder for text boxes
+document.getElementById("fb0").setAttribute("class","");
+
 $('#fb1').flexbox(sources, {
    watermark: 'Enter source name',
    paging: false,
@@ -81,6 +93,7 @@ $('#fb1').flexbox(sources, {
 var e = document.getElementById("pltype");
 
 add_plot();
+plot(e.options[e.selectedIndex].value);
 </script>
 </div>
 </body>

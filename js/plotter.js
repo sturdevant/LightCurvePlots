@@ -3,6 +3,7 @@ var mjd = function(d) { return d.mjd; };
 var on = function(d) { return d.on; };
 var off = function(d) { return d.off; };
 var diff = function(d) { return d.diff; };
+var cd = function(d) { return d.cd; };
 var rat = function(d) { return d.rat; };
 var gap = function(d) { return d.gap; };
 
@@ -61,6 +62,8 @@ function set_type(t) {
       f = rat;
    } else if (t == "diff") {
       f = diff;
+   } else if (t == "cd") {
+      f = cd;
    }
    
    var foc_int = d3.svg.area()
@@ -217,7 +220,9 @@ d3.selection.prototype.moveToFront = function() {
 
 function brushed() {
    x.domain(brush.empty() ? x2.domain() : brush.extent());
-   
+//   console.log(x.domain()); 
+//   start.value = Math.floor(100*x.domain()[0])/100;
+//   end.value = Math.ceil(100*x.domain()[1])/100;
    // Redraw plots
    for (var i = 0; i < foc.length; i++) 
       for (var j = 0; j < data.length; j++)
