@@ -1,34 +1,9 @@
 /* Input textbox - do not specify a width here, it will be overwritten */
 .ffb-input 
 {
-	float:left;
-	color:#000; /* must specify along with watermark color */
-	height:16px; /* required for webkit browsers (Safari, Chrome) */
-}
-
-.ffb-input:focus, textarea:focus {
-   outline:none;
-}
-
-/* Color of watermark, if present */
-.ffb-input.watermark { /* added and removed dynamically */
-	color:#888; /* must specify along with input color */
-}
-
-.ffb-no-results 
-{
-	padding:2px;
-	color:#888;
-	font-style:italic;
-	border-bottom:1px solid #828790;
-}
-
-/* Input textbox - do not specify a width here, it will be overwritten */
-.ffb-input 
-{
    float:left;
    color:#000; /* must specify along with watermark color */
-   height:16px; /* required for webkit browsers (Safari, Chrome) */
+   height:12px; /* required for webkit browsers (Safari, Chrome) */
 }
 
 .ffb-input:focus, textarea:focus {
@@ -84,19 +59,29 @@
    font-size:85%;
 }
 
+button {
+   vertical-align:top;
+   margin-top:0px;
+}
+
 select {
    background-color:#fff;   
+   vertical-align:top;
    margin-left:2px;
+   margin-top:0px;
    margin-right:2px;
 }
 
 input {
+   vertical-align: top;
+   margin-top:0px;
    margin-left:2px;
    margin-right:2px;
 }
 
 span {
    display: inline-block;
-   vertical-align: middle;
+   vertical-align: top;
+   margin-top:0px;
    line-height: normal;      
 }

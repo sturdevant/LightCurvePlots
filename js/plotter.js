@@ -152,6 +152,7 @@ function plot(tp) {
                   // Cool effect to bring hovered el't to front
                   d3.select(this).moveToFront();
                   d3.select(".gap").moveToFront();
+                  d3.selectAll(".axis").moveToFront(); 
                });
          }
          
@@ -220,9 +221,6 @@ d3.selection.prototype.moveToFront = function() {
 
 function brushed() {
    x.domain(brush.empty() ? x2.domain() : brush.extent());
-//   console.log(x.domain()); 
-//   start.value = Math.floor(100*x.domain()[0])/100;
-//   end.value = Math.ceil(100*x.domain()[1])/100;
    // Redraw plots
    for (var i = 0; i < foc.length; i++) 
       for (var j = 0; j < data.length; j++)
