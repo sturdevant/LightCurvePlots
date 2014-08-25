@@ -106,7 +106,7 @@ function set_domains() {
 
 function add_plot() {
    // Set width & height
-   svg = d3.select("body").append("svg")
+   svg = d3.select("div#pltcont").append("svg")
        .attr("width", width + margin.left + margin.right)
        .attr("height", height + margin.top + margin.bottom)
    

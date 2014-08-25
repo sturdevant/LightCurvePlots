@@ -3,7 +3,7 @@
 {
    float:left;
    color:#000; /* must specify along with watermark color */
-   height:12px; /* required for webkit browsers (Safari, Chrome) */
+   height:70%; /* required for webkit browsers (Safari, Chrome) */
 }
 
 .ffb-input:focus, textarea:focus {
@@ -60,28 +60,27 @@
 }
 
 button {
-   vertical-align:top;
-   margin-top:0px;
+   vertical-align:middle;
+   height: 100%;
+   width: 10%;
 }
 
 select {
-   background-color:#fff;   
-   vertical-align:top;
-   margin-left:2px;
-   margin-top:0px;
-   margin-right:2px;
+   background-color:#fff;
+   vertical-align:middle;
+   height: 100%;
+   width: 17%;
 }
 
 input {
-   vertical-align: top;
-   margin-top:0px;
-   margin-left:2px;
-   margin-right:2px;
+   vertical-align: middle;
+   height: 100%;
+   width: 17%;
 }
 
 span {
-   display: inline-block;
-   vertical-align: top;
-   margin-top:0px;
-   line-height: normal;      
+   line-height: normal;
+   vertical-align: middle;
+   height: 100%;
+   width: 15%;
 }

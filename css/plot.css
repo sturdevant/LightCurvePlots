@@ -11,7 +11,15 @@ svg {
 .area00 {
    fill: none;
    stroke: steelblue;
-   stroke-width: 2px;
+   stroke-width: .25%;
+   clip-path: url(#clip);
+   opacity: .75;
+   }
+
+.area01 {
+   fill: none;
+   stroke: orange;
+   stroke-width: .25%;
    clip-path: url(#clip);
    opacity: .75;
    }
@@ -19,20 +27,15 @@ svg {
 .area00:hover {
    opacity: 1;
 }
+
 .area01:hover {
    opacity: 1;
 }
-.area01 {
-   fill: none;
-   stroke: orange;
-   stroke-width: 2px;
-   clip-path: url(#clip);
-   opacity: .75;
-   }
+
 .area10 {
    fill: none;
    stroke: black;
-   stroke-width: 2px;
+   stroke-width: .25%;
    clip-path: url(#clip);
    opacity: .75;
    }
@@ -40,17 +43,18 @@ svg {
 .area11 {
    fill:none;
    stroke: black;
-   stroke-width: 2px;
+   stroke-width: .25%;
    clip-path: url(#clip);
    opacity: .75;
    }
 
 .axis path,
 .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-  position:absolute;
+   position:relative;
+   fill: none;
+   stroke: #000;
+   stroke-width: .25%;
+   shape-rendering: crispEdges;
 }
 
 .brush .extent {

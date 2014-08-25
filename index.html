@@ -2,40 +2,46 @@
 <meta charset="utf-8">
 
 <style>
-.unld {
-   margin-left:260px;
-}
+   .unld {
+      float:left;
+      margin-left:260px;
+   }
 </style>
 
 <head>
-<link rel="stylesheet" type="text/css" href="css/input.css">
-<link rel="stylesheet" type="text/css" href="css/plot.css">
+   <link rel="stylesheet" type="text/css" href="css/input.css">
+   <link rel="stylesheet" type="text/css" href="css/plot.css">
 </head>
 
 <body>
 
-<form> 
-<div id="fb0" class="unld">
+<div id="incont">
+   <div id="fb0" style="float:left; height:50%">
+   </div>
 
-<select id="pltype" name="dropdown" onchange="plot(e.options[e.selectedIndex].value)">
-<option value="sep">Seperate</option>
-<option value="rat">Ratio</option>
-<option value="diff">Difference</option>
-<option value="cd">Cumulative</option>
-</select>
+   <div id="fcont" class="unld" style="float:left; height:50%">
+   <form> 
+      <select id="pltype" name="dropdown" onchange="plot(e.options[e.selectedIndex].value)">
+         <option value="sep">Seperate</option>
+         <option value="rat">Ratio</option>
+         <option value="diff">Difference</option>
+         <option value="cd">Cumulative</option>
+      </select>
 
-<span>Start Date:</span>
-<input id="start" type="number" name="Start Date"></input>
-<span>End Date:</span>
-<input id="end" type="number" name="End Date"></input>
-<button id="fetch" type="button" onclick="fetchAll()">Fetch</button>
+      <span>Start Date:</span>
+      <input id="start" type="number" name="Start Date"></input>
+      <span>End Date:</span>
+      <input id="end" type="number" name="End Date"></input>
+      <button id="fetch" type="button" onclick="fetchAll()">Fetch</button>
+   </form>
+   </div>
+
+   <div id="fb1"> 
+   </div>
+
 </div>
 
-
-<div id="fb1">
-</div>
-
-</form>
+<div id="pltcont" style="clear:both;"></div>
 
 <script src="js/names.js"></script>
 <script src="js/jquery-1.11.1.min.js"></script>
@@ -74,9 +80,6 @@ $('#fb0').flexbox(sources, {
    }
 });
 
-// Seems weird, but removes the place holder for text boxes
-document.getElementById("fb0").setAttribute("class","");
-
 $('#fb1').flexbox(sources, {
    watermark: 'Enter source name',
    paging: false,
@@ -90,10 +93,16 @@ $('#fb1').flexbox(sources, {
       plot(e.options[e.selectedIndex].value);
    }
 });
+
+// Seems weird, but removes the place holder for unloaded text boxes
+// and fixes some style issues w/ them when they do load
+document.getElementById("fcont").setAttribute("class","");
+document.getElementById("fb0").setAttribute("style","float: left; height:50%; position: relative; z-index: 0;");
+document.getElementById("fb1").setAttribute("style","clear: both; height:50%; position: relative; z-index: 0;");
+
 var e = document.getElementById("pltype");
 
 add_plot();
 plot(e.options[e.selectedIndex].value);
 </script>
-</div>
 </body>
